@@ -1,4 +1,4 @@
-# Rifa Política de Calidad — ACFFAA
+# Rifa Política de Calidad — ACFFAA 
 
 Página pública: rompecabezas de la política de calidad.
 Panel admin: `/admin.html`, protegido por una clave secreta que tú defines.
