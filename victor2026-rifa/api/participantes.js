@@ -1,4 +1,9 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
+
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN
+});
 
 export default async function handler(req, res) {
   const key = req.query.key;
@@ -9,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const raw = await kv.lrange('participantes', 0, -1);
+    const raw = await redis.lrange('participantes', 0, -1);
     const list = raw.map((s) => (typeof s === 'string' ? JSON.parse(s) : s));
     res.status(200).json({ total: list.length, participantes: list });
   } catch (e) {

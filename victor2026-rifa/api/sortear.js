@@ -1,4 +1,9 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
+
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN
+});
 
 export default async function handler(req, res) {
   const key = req.query.key;
@@ -9,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const raw = await kv.lrange('participantes', 0, -1);
+    const raw = await redis.lrange('participantes', 0, -1);
     if (!raw.length) {
       res.status(200).json({ error: 'Todavía no hay participantes registrados' });
       return;
@@ -17,7 +22,7 @@ export default async function handler(req, res) {
     const list = raw.map((s) => (typeof s === 'string' ? JSON.parse(s) : s));
     const winner = list[Math.floor(Math.random() * list.length)];
 
-    await kv.set('ultimo_ganador', JSON.stringify({ ...winner, sorteadoEn: new Date().toISOString() }));
+    await redis.set('ultimo_ganador', JSON.stringify({ ...winner, sorteadoEn: new Date().toISOString() }));
 
     res.status(200).json({ ganador: winner, total: list.length });
   } catch (e) {
