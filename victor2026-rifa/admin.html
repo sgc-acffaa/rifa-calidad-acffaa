@@ -34,6 +34,7 @@
   <div class="card hidden" id="panel-box">
     <button class="btn" id="btn-refresh">Actualizar lista</button>
     <button class="btn" id="btn-raffle">🍫🥤 Sortear ganador</button>
+    <button class="btn" id="btn-export" style="background:#2f9e44;">⬇️ Exportar a Excel (CSV)</button>
     <div id="winner-box"></div>
     <div class="muted" id="count-msg" style="margin-top:10px;"></div>
     <table>
@@ -85,6 +86,29 @@
   $('#btn-refresh').addEventListener('click', async ()=>{
     const r = await fetch('/api/participantes?key=' + encodeURIComponent(key));
     renderList(await r.json());
+  });
+
+  $('#btn-export').addEventListener('click', async ()=>{
+    const r = await fetch('/api/participantes?key=' + encodeURIComponent(key));
+    const data = await r.json();
+    const list = data.participantes || [];
+    const header = ['#','Nombre','Oficina/Área','Fecha'];
+    const rows = list.map((p, i)=>{
+      const fecha = p.fecha ? new Date(p.fecha).toLocaleString('es-PE') : '';
+      return [i+1, p.nombre||'', p.area||'', fecha]
+        .map(v => '"' + String(v).replace(/"/g,'""') + '"')
+        .join(',');
+    });
+    const csv = [header.join(','), ...rows].join('\r\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'participantes-rifa-calidad.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   });
 
   $('#btn-raffle').addEventListener('click', async ()=>{
