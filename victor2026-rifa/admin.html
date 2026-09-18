@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel administrador — Rifa Política de Calidad</title>
+<style>
+  :root{ --primary:#7a1015; --bg:#f7f3ee; --surface:#fff; --border:#e6dcd0; --success:#2f9e44; --success-bg:#ebfbee; --muted:#7a6a60; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#2b1810;}
+  .wrap{max-width:760px;margin:0 auto;padding:24px 16px 60px;}
+  h1{color:var(--primary);font-size:1.3rem;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 6px 18px rgba(60,30,20,.1);}
+  input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);font-size:.95rem;margin-bottom:10px;}
+  .btn{background:var(--primary);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:600;cursor:pointer;margin-right:8px;}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.85rem;}
+  th,td{border-bottom:1px solid var(--border);padding:6px 8px;text-align:left;}
+  #winner-box{margin-top:14px;padding:14px;border-radius:10px;background:var(--success-bg);border:2px solid var(--success);display:none;text-align:center;font-weight:700;}
+  .muted{color:var(--muted);font-size:.85rem;}
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔐 Panel administrador — Rifa Política de Calidad</h1>
+
+  <div class="card" id="login-box">
+    <label class="muted">Clave de administrador</label>
+    <input type="password" id="inp-key" placeholder="Tu palabra secreta (ADMIN_SECRET)">
+    <button class="btn" id="btn-login">Entrar</button>
+    <div class="muted" id="login-msg"></div>
+  </div>
+
+  <div class="card hidden" id="panel-box">
+    <button class="btn" id="btn-refresh">Actualizar lista</button>
+    <button class="btn" id="btn-raffle">🍫🥤 Sortear ganador</button>
+    <div id="winner-box"></div>
+    <div class="muted" id="count-msg" style="margin-top:10px;"></div>
+    <table>
+      <thead><tr><th>#</th><th>Nombre</th><th>Oficina/Área</th><th>Fecha</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(function(){
+  let key = localStorage.getItem('admin_key') || '';
+
+  function $(s){ return document.querySelector(s); }
+
+  async function tryEnter(){
+    key = $('#inp-key').value.trim();
+    if(!key){ return; }
+    $('#login-msg').textContent = 'Verificando...';
+    try{
+      const r = await fetch('/api/participantes?key=' + encodeURIComponent(key));
+      if(r.status === 401){
+        $('#login-msg').textContent = 'Clave incorrecta.';
+        return;
+      }
+      localStorage.setItem('admin_key', key);
+      $('#login-box').classList.add('hidden');
+      $('#panel-box').classList.remove('hidden');
+      renderList(await r.json());
+    }catch(e){
+      $('#login-msg').textContent = 'Error de conexión.';
+    }
+  }
+
+  function renderList(data){
+    const rows = $('#rows');
+    rows.innerHTML = '';
+    (data.participantes || []).forEach((p, i)=>{
+      const tr = document.createElement('tr');
+      const fecha = p.fecha ? new Date(p.fecha).toLocaleString('es-PE') : '';
+      tr.innerHTML = '<td>'+(i+1)+'</td><td>'+p.nombre+'</td><td>'+p.area+'</td><td>'+fecha+'</td>';
+      rows.appendChild(tr);
+    });
+    $('#count-msg').textContent = (data.total||0) + ' persona(s) registrada(s).';
+  }
+
+  $('#btn-login').addEventListener('click', tryEnter);
+
+  $('#btn-refresh').addEventListener('click', async ()=>{
+    const r = await fetch('/api/participantes?key=' + encodeURIComponent(key));
+    renderList(await r.json());
+  });
+
+  $('#btn-raffle').addEventListener('click', async ()=>{
+    const r = await fetch('/api/sortear?key=' + encodeURIComponent(key));
+    const data = await r.json();
+    const box = $('#winner-box');
+    if(data.error){
+      box.style.display='block';
+      box.textContent = data.error;
+      return;
+    }
+    box.style.display = 'block';
+    box.textContent = '🎉 Ganador: ' + data.ganador.nombre + ' — ' + data.ganador.area;
+  });
+
+  if(key){
+    $('#inp-key').value = key;
+    tryEnter();
+  }
+})();
+</script>
+</body>
+</html>

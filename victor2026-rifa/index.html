@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Rompecabezas: Política de la Calidad ACFFAA</title>
+<style>
+  :root{
+    --bg:#f7f3ee;
+    --surface:#ffffff;
+    --surface-2:#fbf8f4;
+    --text:#2b1810;
+    --muted:#7a6a60;
+    --primary:#7a1015;
+    --primary-dark:#530a0d;
+    --accent:#c79a34;
+    --success:#2f9e44;
+    --success-bg:#ebfbee;
+    --danger:#e03131;
+    --danger-bg:#fff1f0;
+    --border:#e6dcd0;
+    --shadow: 0 6px 18px rgba(60,30,20,0.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1b1310; --surface:#2a1f1a; --surface-2:#241b16; --text:#f5ece4; --muted:#c9b8ab;
+      --primary:#e2444a; --primary-dark:#b5232a; --accent:#d8b45a;
+      --success:#63e6a4; --success-bg:#123322; --danger:#ff8787; --danger-bg:#3a1414;
+      --border:#4a3a30; --shadow: 0 6px 18px rgba(0,0,0,0.4);
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100vh;}
+  .wrap{max-width:1000px;margin:0 auto;padding:16px 16px 60px;}
+  header.top{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border-radius:16px;padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow);}
+  header.top h1{margin:0 0 6px;font-size:1.4rem;}
+  header.top p{margin:0;opacity:.92;font-size:.95rem;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .btn{display:inline-flex;align-items:center;gap:6px;background:var(--primary);color:#fff;border:none;padding:11px 20px;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;}
+  .btn:active{transform:scale(0.98);}
+  .btn.secondary{background:transparent;color:var(--primary);border:2px solid var(--primary);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  #screen-intro .rules{margin:14px 0;padding-left:20px;color:var(--muted);line-height:1.6;}
+  .board{display:flex;gap:18px;flex-wrap:wrap;}
+  .tray, .targets{flex:1;min-width:280px;}
+  .col-title{font-weight:700;margin-bottom:10px;color:var(--primary);}
+  .tray-box{min-height:120px;background:var(--surface-2);border:2px dashed var(--border);border-radius:12px;padding:10px;display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;}
+  .piece{touch-action:none;user-select:none;cursor:grab;border-radius:10px;padding:10px 12px;font-size:.85rem;line-height:1.35;max-width:100%;box-shadow:0 2px 6px rgba(0,0,0,.15);color:#1c1c1c;font-weight:600;}
+  .piece.dragging{position:fixed;z-index:999;box-shadow:0 10px 24px rgba(0,0,0,.35);cursor:grabbing;}
+  .target{border:2px solid var(--border);border-radius:12px;margin-bottom:10px;padding:10px;background:var(--surface-2);}
+  .target .label{font-weight:700;color:var(--primary);font-size:.85rem;margin-bottom:2px;}
+  .target .desc{font-size:.78rem;color:var(--muted);margin-bottom:8px;}
+  .slot{min-height:52px;border:2px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;padding:6px;font-size:.75rem;color:var(--muted);}
+  .target.correct{border-color:var(--success);background:var(--success-bg);}
+  .target.wrong{border-color:var(--danger);background:var(--danger-bg);}
+  .slot .piece{margin:0;width:100%;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  #overlay-success{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+  #overlay-success .box{background:var(--surface);border-radius:16px;padding:26px;max-width:420px;width:100%;text-align:center;box-shadow:var(--shadow);}
+  #overlay-success h2{margin:0 0 6px;color:var(--primary);}
+  .field{margin:12px 0;text-align:left;}
+  .field label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:4px;}
+  .field input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.95rem;}
+  .confetti{font-size:1.6rem;}
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>🧩 Rompecabezas: Política de la Calidad ACFFAA</h1>
+    <p>Arma correctamente la política uniendo cada frase con su requisito de la ISO 9001 y participa en el sorteo de un chocolate y una gaseosa 🍫🥤</p>
+  </header>
+
+  <div class="card" id="screen-intro">
+    <h3>¿Cómo se juega?</h3>
+    <ol class="rules">
+      <li>Vas a ver 7 piezas (frases de la Política de Calidad de la ACFFAA).</li>
+      <li>Arrástralas (o tócalas y suéltalas) hasta el recuadro del requisito de ISO 9001 que le corresponde.</li>
+      <li>Presiona "Comprobar" cuantas veces quieras hasta que todo esté correcto.</li>
+      <li>Al completarlo, regístrate y quedas participando en el sorteo. 🍫🥤</li>
+    </ol>
+    <button class="btn" id="btn-start">Empezar</button>
+  </div>
+
+  <div class="card hidden" id="screen-puzzle">
+    <div class="board">
+      <div class="tray">
+        <div class="col-title">Piezas de la política</div>
+        <div class="tray-box" id="tray"></div>
+      </div>
+      <div class="targets">
+        <div class="col-title">Requisitos ISO 9001</div>
+        <div id="targets"></div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="btn-check">Comprobar</button>
+      <button class="btn secondary" id="btn-reset">Reiniciar</button>
+      <span id="check-msg" style="align-self:center;font-size:.85rem;color:var(--muted);"></span>
+    </div>
+  </div>
+</div>
+
+<div id="overlay-success">
+  <div class="box">
+    <div class="confetti">🎉🍫🥤🎉</div>
+    <h2>¡Completaste el rompecabezas!</h2>
+    <p style="color:var(--muted);font-size:.9rem;">Regístrate para entrar al sorteo.</p>
+    <div class="field">
+      <label>Nombre completo</label>
+      <input type="text" id="inp-nombre" placeholder="Ej. Juan Pérez">
+    </div>
+    <div class="field">
+      <label>Oficina / Área</label>
+      <input type="text" id="inp-area" placeholder="Ej. OPP">
+    </div>
+    <div id="register-msg" style="font-size:.82rem;color:var(--muted);min-height:18px;"></div>
+    <button class="btn" id="btn-register" style="width:100%;margin-top:6px;">Registrarme en el sorteo</button>
+    <button class="btn secondary" id="btn-close-success" style="width:100%;margin-top:8px;">Cerrar</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const PIECES = [
+    {id:'p1', color:'#ffe066', target:'t1', text:'La ACFFAA se compromete a planificar, organizar y ejecutar el Plan Estratégico de Compras del Sector Defensa, gestionando de manera oportuna, efectiva y transparente las contrataciones estratégicas vinculadas a la Defensa y Seguridad Nacional.'},
+    {id:'p2', color:'#66d9e8', target:'t2', text:'Nuestra política asegura el cumplimiento de los requisitos aplicables,'},
+    {id:'p3', color:'#8ce99a', target:'t3', text:'la gestión de riesgos'},
+    {id:'p4', color:'#f7a8d8', target:'t4', text:'y la seguridad de la información,'},
+    {id:'p5', color:'#8bb4ff', target:'t5', text:'y constituye el marco de referencia para el establecimiento de los objetivos de calidad.'},
+    {id:'p6', color:'#d9d9d9', target:'t6', text:'Todo ello orientado a la mejora continua del sistema de gestión de la calidad'},
+    {id:'p7', color:'#ff8f8f', target:'t7', text:'y a la satisfacción de nuestros clientes internos y externos.'}
+  ];
+
+  const TARGETS = [
+    {id:'t1', label:'5.2.1 a)', desc:'Sea apropiada al propósito y contexto de la organización y apoye su dirección estratégica.'},
+    {id:'t2', label:'5.2.1 c)', desc:'Incluya un compromiso de cumplir los requisitos aplicables.'},
+    {id:'t3', label:'5.1.2 b)', desc:'Se determinan y consideran los riesgos y oportunidades que afectan la conformidad y la satisfacción del cliente.'},
+    {id:'t4', label:'ISO/IEC 27001', desc:'No es requisito de ISO 9001: la seguridad de la información es objeto del SGSI (ISO/IEC 27001).'},
+    {id:'t5', label:'5.2.1 b)', desc:'Proporcione un marco de referencia para el establecimiento de los objetivos de la calidad.'},
+    {id:'t6', label:'5.2.1 d)', desc:'Incluya un compromiso de mejora continua del sistema de gestión de la calidad.'},
+    {id:'t7', label:'5.1.2 a) y c)', desc:'Enfoque al cliente: cumplir sus requisitos y mantener el enfoque en aumentar su satisfacción.'}
+  ];
+
+  function $(sel){ return document.querySelector(sel); }
+  function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function buildBoard(){
+    const tray = $('#tray');
+    const targetsEl = $('#targets');
+    tray.innerHTML = '';
+    targetsEl.innerHTML = '';
+    $('#check-msg').textContent = '';
+
+    TARGETS.forEach(t=>{
+      const div = document.createElement('div');
+      div.className = 'target';
+      div.id = 'target-' + t.id;
+      div.innerHTML =
+        '<div class="label">'+t.label+'</div>'+
+        '<div class="desc">'+t.desc+'</div>'+
+        '<div class="slot" id="slot-'+t.id+'">Suelta aquí la pieza</div>';
+      targetsEl.appendChild(div);
+    });
+
+    shuffle(PIECES).forEach(p=>{ tray.appendChild(makePiece(p)); });
+  }
+
+  function makePiece(p){
+    const el = document.createElement('div');
+    el.className = 'piece';
+    el.id = p.id;
+    el.dataset.target = p.target;
+    el.style.background = p.color;
+    el.textContent = p.text;
+    attachDrag(el);
+    return el;
+  }
+
+  function attachDrag(el){
+    let offsetX=0, offsetY=0, startParent=null, startNext=null, dragging=false;
+
+    el.addEventListener('pointerdown', (e)=>{
+      dragging = true;
+      const rect = el.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      startParent = el.parentElement;
+      startNext = el.nextSibling;
+      el.style.width = rect.width + 'px';
+      document.body.appendChild(el);
+      el.style.left = rect.left + 'px';
+      el.style.top = rect.top + 'px';
+      el.classList.add('dragging');
+      el.setPointerCapture(e.pointerId);
+    });
+
+    el.addEventListener('pointermove', (e)=>{
+      if(!dragging) return;
+      el.style.left = (e.clientX - offsetX) + 'px';
+      el.style.top = (e.clientY - offsetY) + 'px';
+    });
+
+    el.addEventListener('pointerup', (e)=>{
+      if(!dragging) return;
+      dragging = false;
+      el.classList.remove('dragging');
+      el.style.width = '';
+      const cx = e.clientX, cy = e.clientY;
+      let dropped = false;
+
+      $all('.slot').forEach(slot=>{
+        const r = slot.getBoundingClientRect();
+        if(cx>=r.left && cx<=r.right && cy>=r.top && cy<=r.bottom && !dropped){
+          if(!(slot.firstChild && slot.firstChild.classList && slot.firstChild.classList.contains('piece'))){
+            slot.innerHTML = '';
+            slot.appendChild(el);
+            el.style.position = 'static';
+            el.style.left=''; el.style.top='';
+            slot.parentElement.classList.remove('correct','wrong');
+            dropped = true;
+          }
+        }
+      });
+
+      if(!dropped){
+        el.style.position = 'static';
+        el.style.left=''; el.style.top='';
+        startParent.insertBefore(el, startNext);
+      }
+    });
+  }
+
+  $('#btn-check').addEventListener('click', ()=>{
+    let correct = 0;
+    TARGETS.forEach(t=>{
+      const slot = $('#slot-'+t.id);
+      const targetEl = $('#target-'+t.id);
+      const piece = slot.querySelector('.piece');
+      targetEl.classList.remove('correct','wrong');
+      if(piece){
+        if(piece.dataset.target === t.id){ targetEl.classList.add('correct'); correct++; }
+        else { targetEl.classList.add('wrong'); }
+      }
+    });
+    $('#check-msg').textContent = correct + ' de ' + TARGETS.length + ' correctas';
+    if(correct === TARGETS.length){
+      setTimeout(()=>{ $('#overlay-success').style.display='flex'; }, 400);
+    }
+  });
+
+  $('#btn-reset').addEventListener('click', buildBoard);
+  $('#btn-start').addEventListener('click', ()=>{
+    $('#screen-intro').classList.add('hidden');
+    $('#screen-puzzle').classList.remove('hidden');
+    buildBoard();
+  });
+  $('#btn-close-success').addEventListener('click', ()=>{ $('#overlay-success').style.display='none'; });
+
+  $('#btn-register').addEventListener('click', async ()=>{
+    const nombre = $('#inp-nombre').value.trim();
+    const area = $('#inp-area').value.trim();
+    const msg = $('#register-msg');
+    if(!nombre || !area){
+      msg.style.color = 'var(--danger)';
+      msg.textContent = 'Completa nombre y oficina/área.';
+      return;
+    }
+    $('#btn-register').disabled = true;
+    msg.style.color = 'var(--muted)';
+    msg.textContent = 'Registrando...';
+    try{
+      const resp = await fetch('/api/registrar', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ nombre, area })
+      });
+      const data = await resp.json();
+      if(resp.ok && data.ok){
+        msg.style.color = 'var(--success)';
+        msg.textContent = '¡Listo! Quedaste registrado para el sorteo 🍫🥤';
+      } else {
+        throw new Error(data.error || 'Error');
+      }
+    }catch(e){
+      msg.style.color = 'var(--danger)';
+      msg.textContent = 'No se pudo registrar. Verifica tu conexión e intenta de nuevo.';
+      $('#btn-register').disabled = false;
+    }
+  });
+
+  buildBoard();
+})();
+</script>
+</body>
+</html>
