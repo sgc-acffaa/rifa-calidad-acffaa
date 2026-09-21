@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel administrador — Rifa Política de Calidad</title>
+<title>Panel administrador — Sorteo Política de Calidad</title>
 <style>
   :root{ --primary:#7a1015; --bg:#f7f3ee; --surface:#fff; --border:#e6dcd0; --success:#2f9e44; --success-bg:#ebfbee; --muted:#7a6a60; }
   *{box-sizing:border-box;}
@@ -22,7 +22,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>🔐 Panel administrador — Rifa Política de Calidad</h1>
+  <h1>🔐 Panel administrador — Sorteo Política de Calidad</h1>
 
   <div class="card" id="login-box">
     <label class="muted">Clave de administrador</label>
@@ -104,7 +104,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'participantes-rifa-calidad.csv';
+    a.download = 'participantes-sorteo-calidad.csv';
     document.body.appendChild(a);
     a.click();
     a.remove();
